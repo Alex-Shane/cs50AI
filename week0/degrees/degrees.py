@@ -55,7 +55,7 @@ def load_data(directory):
 def main():
     if len(sys.argv) > 2:
         sys.exit("Usage: python degrees.py [directory]")
-    directory = sys.argv[1] if len(sys.argv) == 2 else "small"
+    directory = sys.argv[1] if len(sys.argv) == 2 else "large"
 
     # Load data from files into memory
     print("Loading data...")
@@ -95,24 +95,25 @@ def shortest_path(source, target):
         return None
     output = []
     q = QueueFrontier()
-    explored = []
-    q.add(Node((None, source),None))
+    explored = set()
+    q.add(Node(source, None, None))
     while not q.empty():
         cur_node = q.remove()
-        new_nodes = neighbors_for_person(cur_node.state[1])
+        new_nodes = neighbors_for_person(cur_node.state)
+        explored.add(cur_node.state)
         for node in new_nodes:
-            if node in explored:
+            if node[1] in explored or q.contains_state(target):
                 continue
             if node[1] == target:
-                output.append(node)
-                node = Node(node,cur_node)
-                while node.parent.state != (None,source):
-                    output.append(node.parent)
+                #output.append(node)
+                node = Node(node[1],cur_node, node[0])
+                while node.parent is not None:
+                    output.append((node.action, node.state))
                     node = node.parent
                 output.reverse()
                 return output
-            q.add(Node(node, cur_node))
-        explored.append(cur_node)
+            q.add(Node(node[1], cur_node, node[0]))
+        
     return None
 
 
