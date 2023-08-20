@@ -189,7 +189,53 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        raise NotImplementedError
+        self.moves_made.add(cell)
+        self.mark_safe(cell)
+        cells = set()
+        cell_count = count
+        for x in range(cell[0]-1, cell[0]+2):
+            for i in range(cell[1]-1, cell[0]+2):
+                if x < 0 or x >= self.height or i < 0 or i >= self.width or (x,i) == cell:
+                    continue
+                if (x,i) not in self.safes:
+                    if (x,i) not in self.mines:
+                        cells.add((x,i))
+                    else:
+                        cell_count -= 1
+        if len(cells) > 0:
+            self.knowledge.append(Sentence(cells,cell_count))
+        self.check_new_knowledge()
+        self.check_for_inferences()
+        
+    
+    def check_new_knowledge(self):
+        copy = [sentence for sentence in self.knowledge]
+        for sentence in copy:
+            if len(sentence.cells) == 0 and sentence in self.knowledge:
+                self.knowledge.remove(sentence)
+            mines = sentence.known_mines()
+            safes = sentence.known_safes()
+            if mines is not None:
+                mines_copy = [mine for mine in mines]
+                for mine in mines_copy:
+                    self.mark_mine(mine)
+                    self.check_new_knowledge()
+            if safes is not None:
+                safes_copy = [safe for safe in safes]
+                for safe in safes_copy:
+                    self.mark_safe(safe)
+                    self.check_new_knowledge()
+    
+    def check_for_inferences(self):
+        copy = [sentence for sentence in self.knowledge]
+        for s1 in copy:
+            for s2 in copy:
+                if s1.cells.issubset(s2.cells) and s1 != s2:
+                    new_cells = s2.cells - s1.cells
+                    new_count = s2.count - s2.count - s1.count
+                    new_sentence = Sentence(new_cells, new_count)
+                    self.knowledge.append(new_sentence)
+            
 
     def make_safe_move(self):
         """
@@ -200,7 +246,10 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+        for safe_move in self.safes:
+            if safe_move not in self.moves_made:
+                return safe_move
+        return None
 
     def make_random_move(self):
         """
@@ -209,4 +258,12 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        raise NotImplementedError
+        choices = []
+        for x in range(self.height):
+            for i in range(self.width):
+                if (x,i) not in self.moves_made and (x,i) not in self.mines:
+                    choices.append((x,i))
+        if len(choices) == 0:
+            return None
+        else:
+            return random.choice(choices)
