@@ -189,12 +189,13 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
+        print('loading...')
         self.moves_made.add(cell)
         self.mark_safe(cell)
         cells = set()
         cell_count = count
         for x in range(cell[0]-1, cell[0]+2):
-            for i in range(cell[1]-1, cell[0]+2):
+            for i in range(cell[1]-1, cell[1]+2):
                 if x < 0 or x >= self.height or i < 0 or i >= self.width or (x,i) == cell:
                     continue
                 if (x,i) not in self.safes:
@@ -206,7 +207,8 @@ class MinesweeperAI():
             self.knowledge.append(Sentence(cells,cell_count))
         self.check_new_knowledge()
         self.check_for_inferences()
-        
+        print(self.safes)
+        print('done')
     
     def check_new_knowledge(self):
         copy = [sentence for sentence in self.knowledge]
@@ -225,7 +227,7 @@ class MinesweeperAI():
                 for safe in safes_copy:
                     self.mark_safe(safe)
                     self.check_new_knowledge()
-    
+            
     def check_for_inferences(self):
         copy = [sentence for sentence in self.knowledge]
         for s1 in copy:
@@ -246,9 +248,8 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        for safe_move in self.safes:
-            if safe_move not in self.moves_made:
-                return safe_move
+        for safe_move in self.moves_made-self.safes:
+            return safe_move
         return None
 
     def make_random_move(self):
