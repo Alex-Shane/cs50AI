@@ -189,7 +189,6 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        print('loading...')
         self.moves_made.add(cell)
         self.mark_safe(cell)
         cells = set()
@@ -207,8 +206,6 @@ class MinesweeperAI():
             self.knowledge.append(Sentence(cells,cell_count))
         self.check_new_knowledge()
         self.check_for_inferences()
-        print(self.safes)
-        print('done')
     
     def check_new_knowledge(self):
         copy = [sentence for sentence in self.knowledge]
@@ -234,7 +231,7 @@ class MinesweeperAI():
             for s2 in copy:
                 if s1.cells.issubset(s2.cells) and s1 != s2:
                     new_cells = s2.cells - s1.cells
-                    new_count = s2.count - s2.count - s1.count
+                    new_count = s2.count - s1.count
                     new_sentence = Sentence(new_cells, new_count)
                     self.knowledge.append(new_sentence)
             
@@ -248,7 +245,7 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        for safe_move in self.moves_made-self.safes:
+        for safe_move in self.safes-self.moves_made:
             return safe_move
         return None
 
