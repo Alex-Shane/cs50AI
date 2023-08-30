@@ -181,7 +181,6 @@ while True:
         # If AI button clicked, make an AI move
         if aiButton.collidepoint(mouse) and not lost:
             move = ai.make_safe_move()
-            print(move)
             if move is None:
                 move = ai.make_random_move()
                 if move is None:
