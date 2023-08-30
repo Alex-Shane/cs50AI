@@ -8,10 +8,9 @@ SAMPLES = 10000
 
 
 def main():
-    #if len(sys.argv) != 2:
-        #sys.exit("Usage: python pagerank.py corpus")
-    #corpus = crawl(sys.argv[1])
-    corpus = crawl("corpus0")
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python pagerank.py corpus")
+    corpus = crawl(sys.argv[1])
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
@@ -112,7 +111,7 @@ def iterate_pagerank(corpus, damping_factor):
         cur_max = float('-inf')
         for page in corpus:
             new_pr = PR(damping_factor, old_vals, corpus, page)
-            cur_max = max(cur_max, abs(old_vals[page]-new_pr))
+            cur_max = max(cur_max, abs(new_pr-old_vals[page]))
             new_vals[page] = new_pr
         if cur_max < 0.001:
             break
@@ -123,10 +122,10 @@ def iterate_pagerank(corpus, damping_factor):
 def PR(damping_factor, pr_dict, corpus,cur_page):
     first_cond = (1-damping_factor)/len(pr_dict)
     second_cond = 0
-    for page in corpus[cur_page]:
+    for page in corpus:
         if len(corpus[cur_page]) == 0:
             second_cond += pr_dict[page] / len(pr_dict)
-        else:
+        elif cur_page in corpus[page]:
             second_cond += pr_dict[page] / len(corpus[page])
     second_cond *= damping_factor
     return (first_cond + second_cond)
