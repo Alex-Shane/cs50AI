@@ -104,26 +104,30 @@ def iterate_pagerank(corpus, damping_factor):
     pr_dict = {}
     for key in corpus:
         pr_dict[key] = 1/len(corpus)
-    
-    max_change = float('-inf')
-    while(max_change > 0.001):
+        
+    old_vals = pr_dict
+    new_vals = pr_dict.copy() 
+
+    while(old_vals):
         cur_max = float('-inf')
         for page in corpus:
-            new_pr = PR(damping_factor, corpus, page)
-            cur_max = max(cur_max, abs(pr_dict[page]-new_pr))
-            pr_dict[page] = new_pr
-        max_change = cur_max
+            new_pr = PR(damping_factor, old_vals, corpus, page)
+            cur_max = max(cur_max, abs(old_vals[page]-new_pr))
+            new_vals[page] = new_pr
+        if cur_max < 0.001:
+            break
+        else:
+            old_vals = new_vals.copy()
+    return old_vals
     
-    return pr_dict
-
-def PR(damping_factor, corpus, cur_page):
-    first_cond = (1-damping_factor)/len(corpus)
+def PR(damping_factor, pr_dict, corpus,cur_page):
+    first_cond = (1-damping_factor)/len(pr_dict)
     second_cond = 0
     for page in corpus[cur_page]:
-        if len(corpus[cur_page] == 0):
-            second_cond += PR(damping_factor, corpus, page) / len(corpus)
+        if len(corpus[cur_page]) == 0:
+            second_cond += pr_dict[page] / len(pr_dict)
         else:
-            second_cond += PR(damping_factor, corpus, page) / len(corpus[page])
+            second_cond += pr_dict[page] / len(corpus[page])
     second_cond *= damping_factor
     return (first_cond + second_cond)
 
