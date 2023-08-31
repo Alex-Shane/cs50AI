@@ -140,72 +140,72 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone not in set` have_trait` does not have the trait.
     """
     probs = []
-    no_gene = set(list(people.keys()))-one_gene-two_genes
     for person in people:
         if people[person]['mother'] == None:
-            if person in no_gene:
-                copy_prob = PROBS['gene'][0]
-                trait_prob = PROBS['trait'][0][person in have_trait]
+            if person in two_genes:
+                copy_prob = PROBS['gene'][2]
+                trait_prob = PROBS['trait'][2][person in have_trait]
             elif person in one_gene:
                 copy_prob = PROBS['gene'][1]
                 trait_prob = PROBS['trait'][1][person in have_trait]
             else:
-                copy_prob = PROBS['gene'][2]
-                trait_prob = PROBS['trait'][2][person in have_trait]
+                copy_prob = PROBS['gene'][0]
+                trait_prob = PROBS['trait'][0][person in have_trait]
             probs.append(copy_prob*trait_prob)
         else:
             mom = people[person]['mother']
             dad = people[person]['father']
-            if person in no_gene:
-                no_mom = 0
-                if mom in no_gene:
-                    no_mom = 1-PROBS['mutation']
-                elif mom in one_gene:
-                    no_mom = 0.5 
-                else:
-                    no_mom = PROBS['mutation']
-                no_dad = 0
-                if dad in no_gene:
-                    no_dad = 1-PROBS['mutation']
-                elif dad in one_gene:
-                    no_dad = 0.5 
-                else:
-                    no_dad = PROBS['mutation']
-                probs.append(no_mom*no_dad)
-            elif person in one_gene:
+            if person in two_genes:
                 from_mom = 0
-                if mom in no_gene:
-                    from_mom = PROBS['mutation']
+                if mom in two_genes:
+                    from_mom = 1-PROBS['mutation']
                 elif mom in one_gene:
                     from_mom = 0.5 
                 else:
-                    from_mom = 1-PROBS['mutation']
+                    from_mom = PROBS['mutation']
                 from_dad = 0
-                if dad in no_gene:
-                    from_dad = PROBS['mutation']
-                elif dad in one_gene:
-                    from_dad = 0.5
-                else:
+                if dad in two_genes:
                     from_dad = 1-PROBS['mutation']
-                not_from_mom = 1-from_mom
-                not_from_dad = 1-from_dad
-                probs.append(from_mom*not_from_dad + from_dad*not_from_mom)
-            else:
-                from_mom = 0
-                if mom in no_gene:
-                    from_mom = PROBS['mutation']
-                elif mom in one_gene:
-                    from_mom = 0.5 
-                else:
-                    from_mom = 1-PROBS['mutation']
-                from_dad = 0
-                if dad in no_gene:
-                    from_dad = PROBS['mutation']
                 elif dad in one_gene:
                     from_dad = 0.5 
                 else:
-                    from_dad = 1-PROBS['mutation']
+                    from_dad = PROBS['mutation']
                 probs.append(from_mom*from_dad)
+            elif person in one_gene:
+                from_mom = 0
+                if mom in two_genes:
+                    from_mom = 1-PROBS['mutation']
+                elif mom in one_gene:
+                    from_mom = 0.5 
+                else:
+                    from_mom = PROBS['mutation']
+                from_dad = 0
+                if dad in two_genes:
+                    from_dad = 1-PROBS['mutation']
+                elif dad in one_gene:
+                    from_dad = 0.5
+                else:
+                    from_dad = PROBS['mutation']
+                not_from_mom = 1-from_mom
+                not_from_dad = 1-from_dad
+                probs.append(from_mom*not_from_dad + from_dad*not_from_mom)
+                
+            else:
+                no_mom = 0
+                if mom in two_genes:
+                    no_mom = PROBS['mutation']
+                elif mom in one_gene:
+                    no_mom = 0.5 
+                else:
+                    no_mom = 1-PROBS['mutation']
+                no_dad = 0
+                if dad in two_genes:
+                    no_dad = PROBS['mutation']
+                elif dad in one_gene:
+                    no_dad = 0.5 
+                else:
+                    no_dad = 1-PROBS['mutation']
+                probs.append(no_mom*no_dad)
     probability = 1
     for num in probs:
         probability *= num
