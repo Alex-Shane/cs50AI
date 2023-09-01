@@ -40,10 +40,9 @@ PROBS = {
 def main():
 
     # Check for proper usage
-    #if len(sys.argv) != 2:
-        #sys.exit("Usage: python heredity.py data.csv")
-    #people = load_data(sys.argv[1])
-    people = load_data("data/family0.csv")
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python heredity.py data.csv")
+    people = load_data(sys.argv[1])
     # Keep track of gene and trait probabilities for each person
     probabilities = {
         person: {
@@ -170,7 +169,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                     from_dad = 0.5 
                 else:
                     from_dad = PROBS['mutation']
-                probs.append(from_mom*from_dad)
+                probs.append((from_mom*from_dad)*PROBS['trait'][2][person in have_trait])
             elif person in one_gene:
                 from_mom = 0
                 if mom in two_genes:
@@ -188,7 +187,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                     from_dad = PROBS['mutation']
                 not_from_mom = 1-from_mom
                 not_from_dad = 1-from_dad
-                probs.append(from_mom*not_from_dad + from_dad*not_from_mom)
+                probs.append((from_mom*not_from_dad + from_dad*not_from_mom)*PROBS['trait'][1][person in have_trait])
                 
             else:
                 no_mom = 0
@@ -205,7 +204,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                     no_dad = 0.5 
                 else:
                     no_dad = 1-PROBS['mutation']
-                probs.append(no_mom*no_dad)
+                probs.append((no_mom*no_dad)*PROBS['trait'][0][person in have_trait])
     probability = 1
     for num in probs:
         probability *= num
