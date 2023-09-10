@@ -1,7 +1,8 @@
 import sys
 
 from crossword import *
-
+import copy
+import random
 
 class CrosswordCreator():
 
@@ -119,11 +120,11 @@ class CrosswordCreator():
         else:
             domains_copy = copy.deepcopy(self.domains)
             edited = False
-            overlap = self.crossword.overlaps[x,y]
-            for word in self.domains[x]:
+            xoverlap, yoverlap = self.crossword.overlaps[x,y]
+            for word in domains_copy[x]:
                 match = False
-                for word2 in self.domains[y]:
-                    if word[overlap[1]] == word2[overlap[1]]:
+                for word2 in domains_copy[y]:
+                    if word[xoverlap] == word2[yoverlap]:
                         match = True
                         break
                 if match:
@@ -148,9 +149,9 @@ class CrosswordCreator():
             q = arcs
         if not arcs:
             for var in self.domains:
-                for var2 in self.crossword.neighbors(variable1):
+                for var2 in self.crossword.neighbors(var):
                     if self.crossword.overlaps[var, var2] is not None:
-                        queue.append((var, var))
+                        q.append((var, var2))
 
         while len(q) > 0:
             arc = q.pop(0)
@@ -160,7 +161,7 @@ class CrosswordCreator():
                     return False
                 for n in self.crossword.neighbors(x):
                     if n != y:
-                        q.append((neighbour, x))
+                        q.append((n, x))
         return True
 
     def assignment_complete(self, assignment):
@@ -189,11 +190,9 @@ class CrosswordCreator():
         for var in assignment:
             for n in self.crossword.neighbors(var):
                 if n in assignment:
-                    overlap = self.crossword.overlaps[var, n]
-                    x,y = overlap[0], overlap[1]
+                    x,y = self.crossword.overlaps[var, n]
                     if assignment[var][x] != assignment[n][y]:
                         return False
-
         return True
             
 
@@ -205,22 +204,18 @@ class CrosswordCreator():
         that rules out the fewest values among the neighbors of `var`.
         """
         words = {}
-
         neighbours = self.crossword.neighbors(var)
-
         for word in self.domains[var]:
             ruled_out = 0
             for n in neighbours:
                 if n in assignment:
                     continue
                 else:
-                    overlap = self.crossword.overlaps[var, n]
-                    x, y = overlap[0], overlap[1]
+                    x,y = self.crossword.overlaps[var, n]
                     for adj_word in self.domains[n]:
                         if word[x] != adj_word[y]:
                             ruled_out += 1
             words[word] = ruled_out
-
         sorted_words = dict(sorted(words.items(), key=lambda item: item[1]))
         sorted_words = list(sorted_words.keys())
         return sorted_words
@@ -238,20 +233,17 @@ class CrosswordCreator():
         for var in self.domains:
             if var not in assignment:
                 unassigned[var] = self.domains[var]
-        min_vals = sorted(unassigned.items(), key=lambda item:len(item[1])
-        if len(min_vals) > 1 and (min_vals[0] == min_vals[1]):
-            max_degrees = sorted(unassigned.items(), key=lambda item:len(self.crossword.neighbors(item[0])), reverse=True)
+        min_vals = sorted(unassigned.items(), key=lambda item: len(item[1]))
+        if len(min_vals) > 1 and min_vals[0] == min_vals[1]:
+            max_degrees = sorted(unassigned.items(), key=lambda item: len(self.crossword.neighbors(item[0])), reverse=True)
             if (len(max_degrees) > 1 and max_degrees[0] == max_degrees[1]):
                 # random choice out of tied degrees
                 choices = [var for var in unassigned if len(self.crossword.neighbors(var)) == max_degrees[0]]
                 chosen = random.choice(choices)
                 return chosen
-            return max_degrees[0]
-        return min_vals[0]
-        
+            return max_degrees[0][0]
+        return min_vals[0][0]
 
-        # return variable with the minimum number of remaining values
-        return sorted_list[0]
 
     def backtrack(self, assignment):
         """
@@ -262,7 +254,18 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if len(assignment) == len(self.domains):
+            return assignment
+        var = self.select_unassigned_variable(assignment)
+        print(var)
+        for word in self.domains[var]:
+            assignment_copy = assignment.copy()
+            assignment_copy[var] = word
+            if self.consistent(assignment_copy):
+                new_assignment = self.backtrack(assignment_copy)
+                if new_assignment is not None:
+                    return new_assignment
+        return None
 
 
 def main():
